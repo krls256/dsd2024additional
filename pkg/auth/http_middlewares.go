@@ -1,12 +1,11 @@
 package auth
 
 import (
-	"context"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/krls256/dsd2024additional/pkg/transport/http"
-	"github.com/samber/lo"
+	"go.uber.org/zap"
 	"strings"
 )
 
@@ -15,19 +14,13 @@ var (
 	ErrAuthHeaderIsRequired = errors.New("auth header is required")
 )
 
-type SessionService interface {
-	GetPermissions(ctx context.Context, id uuid.UUID) ([]string, error)
-}
-
-func NewJWTMiddlewareFactory(pm *PermissionManager, authorizer *JWTAuthorizer, cfg *JWTConfig, ss SessionService) *JWTMiddlewareFactory {
-	return &JWTMiddlewareFactory{pm: pm, authorizer: authorizer, cfg: cfg, ss: ss}
+func NewJWTMiddlewareFactory(authorizer *JWTAuthorizer, cfg *JWTConfig) *JWTMiddlewareFactory {
+	return &JWTMiddlewareFactory{authorizer: authorizer, cfg: cfg}
 }
 
 type JWTMiddlewareFactory struct {
-	pm         *PermissionManager
 	authorizer *JWTAuthorizer
 	cfg        *JWTConfig
-	ss         SessionService
 }
 
 func (f *JWTMiddlewareFactory) GetToken(ctx *fiber.Ctx) string {
@@ -42,9 +35,7 @@ func (f *JWTMiddlewareFactory) GetToken(ctx *fiber.Ctx) string {
 	return strings.ReplaceAll(token, f.cfg.HeaderScheme, "")
 }
 
-func (f *JWTMiddlewareFactory) Middleware(permission, description string) fiber.Handler {
-	f.pm.Add(permission, description)
-
+func (f *JWTMiddlewareFactory) Middleware() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		t := f.GetToken(ctx)
 
@@ -62,14 +53,7 @@ func (f *JWTMiddlewareFactory) Middleware(permission, description string) fiber.
 			return http.Forbidden(ctx, nil, err)
 		}
 
-		permissions, err := f.ss.GetPermissions(ctx.UserContext(), jtiUUID)
-		if err != nil {
-			return http.Forbidden(ctx, nil, err)
-		}
-
-		if !lo.Contains(permissions, permission) {
-			return http.Forbidden(ctx, nil, ErrPermissionDenied)
-		}
+		zap.S().Info(jtiUUID)
 
 		return ctx.Next()
 	}

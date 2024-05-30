@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/krls256/dsd2024additional/pkg/entities"
 	"github.com/samber/lo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -78,4 +79,20 @@ func IsSlice(v interface{}) (isSlice, isEmpty bool) {
 
 func IsNilPointer(v interface{}) (isNil bool) {
 	return reflect.TypeOf(v).Kind() == reflect.Pointer && reflect.ValueOf(v).IsNil()
+}
+
+func ToOrderMany(order []entities.Order) map[string]interface{} {
+	res := map[string]interface{}{}
+
+	for _, o := range order {
+		val := 1
+
+		if o.IsDesc() {
+			val = -1
+		}
+
+		res[o.Column()] = val
+	}
+
+	return res
 }
