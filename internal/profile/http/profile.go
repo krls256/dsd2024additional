@@ -28,11 +28,11 @@ type ProfileHandler struct {
 func (h *ProfileHandler) Register(router fiber.Router) {
 	profile := router.Group("profile")
 
-	profile.Post("create", h.jwtFactory.Middleware(), h.create)
-	profile.Post("update", h.jwtFactory.Middleware(), h.update)
+	profile.Get("get", h.jwtFactory.Middleware(), h.get)
+	profile.Post("upsert", h.jwtFactory.Middleware(), h.upsert)
 }
 
-func (h *ProfileHandler) create(ctx *fiber.Ctx) error {
+func (h *ProfileHandler) upsert(ctx *fiber.Ctx) error {
 	id := h.jwtFactory.UnwrapCtx(ctx)
 	req := entities.UpsertProfileRequest{}
 
@@ -42,7 +42,7 @@ func (h *ProfileHandler) create(ctx *fiber.Ctx) error {
 
 	req.ID = id
 
-	p, err := h.profileService.Create(ctx.UserContext(), req)
+	p, err := h.profileService.Upsert(ctx.UserContext(), req)
 	if err != nil {
 		return h.errorHandler.HandleError(ctx, err)
 	}
@@ -50,17 +50,12 @@ func (h *ProfileHandler) create(ctx *fiber.Ctx) error {
 	return http.OK(ctx, nil, p)
 }
 
-func (h *ProfileHandler) update(ctx *fiber.Ctx) error {
-	id := h.jwtFactory.UnwrapCtx(ctx)
-	req := entities.UpsertProfileRequest{}
-
-	if err := ctx.BodyParser(&req); err != nil {
-		return h.errorHandler.HandleError(ctx, err)
+func (h *ProfileHandler) get(ctx *fiber.Ctx) error {
+	req := entities.GetProfileRequest{
+		ID: h.jwtFactory.UnwrapCtx(ctx),
 	}
 
-	req.ID = id
-
-	p, err := h.profileService.Update(ctx.UserContext(), req)
+	p, err := h.profileService.Get(ctx.UserContext(), req)
 	if err != nil {
 		return h.errorHandler.HandleError(ctx, err)
 	}

@@ -45,3 +45,7 @@ type UpsertProfileRequest struct {
 	Nickname string `json:"nickname"`
 	AboutMe  string `json:"about_me"`
 }
+
+type GetProfileRequest struct {
+	ID uuid.UUID `json:"id"`
+}

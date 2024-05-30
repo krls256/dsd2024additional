@@ -11,6 +11,7 @@ const (
 	MongoDatabaseName      = "MongoDatabase"
 	RedisName              = "Redis"
 	HTTPServerName         = "HTTP"
+	SessionServiceName     = "SessionService"
 
 	JWTAuthorizerName = "JWTAuthorizer"
 

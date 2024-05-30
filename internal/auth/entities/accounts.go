@@ -55,8 +55,8 @@ func (a *Account) IDColumnName() string {
 	return "id"
 }
 
-type DeleteAccountRequest struct {
-	ID uuid.UUID `json:"id" validate:"required,not_root_id"`
+type ExactAccountRequest struct {
+	ID uuid.UUID `json:"id"`
 }
 
 type CreateAccount struct {

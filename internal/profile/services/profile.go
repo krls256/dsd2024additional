@@ -16,8 +16,8 @@ type ProfileService struct {
 	profileRepository *pkgRepositories.BaseRepository[*entities.Profile]
 }
 
-func (p *ProfileService) Create(ctx context.Context, req entities.UpsertProfileRequest) (*entities.Profile, error) {
-	_, ok, err := p.profileRepository.FindBy(ctx, map[string]interface{}{
+func (p *ProfileService) Upsert(ctx context.Context, req entities.UpsertProfileRequest) (*entities.Profile, error) {
+	profile, ok, err := p.profileRepository.FindBy(ctx, map[string]interface{}{
 		"id": req.ID,
 	}, pkgEntities.Order{}.SetColumn("created_at").SetDesc().ToSlice())
 
@@ -26,15 +26,15 @@ func (p *ProfileService) Create(ctx context.Context, req entities.UpsertProfileR
 	}
 
 	if ok {
-		return nil, errs.ProfileAlreadyExists
+		profile.SetUpsertProfileRequest(req)
+	} else {
+		profile = entities.NewProfile(req)
 	}
-
-	profile := entities.NewProfile(req)
 
 	return profile, p.profileRepository.SaveNoReturn(ctx, profile)
 }
 
-func (p *ProfileService) Update(ctx context.Context, req entities.UpsertProfileRequest) (*entities.Profile, error) {
+func (p *ProfileService) Get(ctx context.Context, req entities.GetProfileRequest) (*entities.Profile, error) {
 	profile, ok, err := p.profileRepository.FindBy(ctx, map[string]interface{}{
 		"id": req.ID,
 	}, pkgEntities.Order{}.SetColumn("created_at").SetDesc().ToSlice())
@@ -47,7 +47,5 @@ func (p *ProfileService) Update(ctx context.Context, req entities.UpsertProfileR
 		return nil, errs.ProfileNotExists
 	}
 
-	profile.SetUpsertProfileRequest(req)
-
-	return profile, p.profileRepository.SaveNoReturn(ctx, profile)
+	return profile, nil
 }

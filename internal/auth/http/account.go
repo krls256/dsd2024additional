@@ -28,7 +28,9 @@ func (h *AccountHandler) Register(router fiber.Router) {
 	account := router.Group("auth/account")
 
 	account.Put("", h.create)
-	account.Delete("", h.delete)
+
+	account.Get("", h.jwtFactory.Middleware(), h.get)
+	account.Delete("", h.jwtFactory.Middleware(), h.delete)
 }
 
 func (h *AccountHandler) create(ctx *fiber.Ctx) error {
@@ -46,9 +48,8 @@ func (h *AccountHandler) create(ctx *fiber.Ctx) error {
 }
 
 func (h *AccountHandler) delete(ctx *fiber.Ctx) error {
-	req := entities.DeleteAccountRequest{}
-	if err := ctx.BodyParser(&req); err != nil {
-		return h.errorHandler.HandleError(ctx, err)
+	req := entities.ExactAccountRequest{
+		ID: h.jwtFactory.UnwrapCtx(ctx),
 	}
 
 	if err := h.accountService.Delete(ctx.UserContext(), req); err != nil {
@@ -56,4 +57,17 @@ func (h *AccountHandler) delete(ctx *fiber.Ctx) error {
 	}
 
 	return http.OK(ctx, nil, nil)
+}
+
+func (h *AccountHandler) get(ctx *fiber.Ctx) error {
+	req := entities.ExactAccountRequest{
+		ID: h.jwtFactory.UnwrapCtx(ctx),
+	}
+
+	acc, err := h.accountService.Get(ctx.UserContext(), req)
+	if err != nil {
+		return h.errorHandler.HandleError(ctx, err)
+	}
+
+	return http.OK(ctx, nil, acc)
 }

@@ -33,7 +33,7 @@ redis:
   host: 0.0.0.0
   port: 6379
   pass:
-  prefix: "svc.auth"
+  prefix: "svc"
 
 jwt:
   headerName: "Bearer"

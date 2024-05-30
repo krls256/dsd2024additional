@@ -71,10 +71,26 @@ func (s *AccountService) Create(ctx context.Context, req entities.CreateAccount)
 	return account, s.accountRepository.CreateNoReturn(ctx, account)
 }
 
-func (s *AccountService) Delete(ctx context.Context, req entities.DeleteAccountRequest) error {
+func (s *AccountService) Delete(ctx context.Context, req entities.ExactAccountRequest) error {
 	if err := s.validatorEngine.ValidateStruct(req); err != nil {
 		return errors.Join(s.validatorEngine.CheckValidationPureErrors(err)...)
 	}
 
 	return s.accountRepository.Delete(ctx, []uuid.UUID{req.ID}, map[string]interface{}{})
+}
+
+func (s *AccountService) Get(ctx context.Context, req entities.ExactAccountRequest) (*entities.Account, error) {
+	acc, ok, err := s.accountRepository.FindBy(ctx, map[string]interface{}{
+		"id": req.ID,
+	}, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return nil, errs.ErrAccountNotFound
+	}
+
+	return acc, nil
 }

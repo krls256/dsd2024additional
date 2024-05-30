@@ -14,13 +14,14 @@ var (
 	ErrAuthHeaderIsRequired = errors.New("auth header is required")
 )
 
-func NewJWTMiddlewareFactory(authorizer *JWTAuthorizer, cfg *JWTConfig) *JWTMiddlewareFactory {
-	return &JWTMiddlewareFactory{authorizer: authorizer, cfg: cfg}
+func NewJWTMiddlewareFactory(authorizer *JWTAuthorizer, cfg *JWTConfig, ss *SessionService) *JWTMiddlewareFactory {
+	return &JWTMiddlewareFactory{authorizer: authorizer, cfg: cfg, ss: ss}
 }
 
 type JWTMiddlewareFactory struct {
 	authorizer *JWTAuthorizer
 	cfg        *JWTConfig
+	ss         *SessionService
 }
 
 func (f *JWTMiddlewareFactory) GetToken(ctx *fiber.Ctx) string {
@@ -61,7 +62,12 @@ func (f *JWTMiddlewareFactory) Middleware() fiber.Handler {
 			return http.Forbidden(ctx, nil, err)
 		}
 
-		f.WrapCtx(ctx, jtiUUID)
+		session, err := f.ss.Get(ctx.UserContext(), jtiUUID)
+		if err != nil {
+			return http.Forbidden(ctx, nil, err)
+		}
+
+		f.WrapCtx(ctx, session.UserID)
 
 		return ctx.Next()
 	}

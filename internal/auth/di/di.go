@@ -5,9 +5,7 @@ import (
 	"github.com/krls256/dsd2024additional/internal/auth/entities"
 	"github.com/krls256/dsd2024additional/internal/auth/http"
 	"github.com/krls256/dsd2024additional/internal/auth/migrations"
-	"github.com/krls256/dsd2024additional/internal/auth/repositories"
 	"github.com/krls256/dsd2024additional/internal/auth/repositories/pgsql"
-	"github.com/krls256/dsd2024additional/internal/auth/repositories/redis"
 	"github.com/krls256/dsd2024additional/internal/auth/rules"
 	"github.com/krls256/dsd2024additional/internal/auth/services"
 	"github.com/krls256/dsd2024additional/pkg/auth"
@@ -15,7 +13,6 @@ import (
 	pkgDI "github.com/krls256/dsd2024additional/pkg/di"
 	"github.com/krls256/dsd2024additional/pkg/errors"
 	pgsqlConn "github.com/krls256/dsd2024additional/pkg/pgsql"
-	redisConn "github.com/krls256/dsd2024additional/pkg/redis"
 	pkgRepositories "github.com/krls256/dsd2024additional/pkg/repositories/pgsql"
 	"github.com/krls256/dsd2024additional/pkg/validator"
 	"github.com/sarulabs/di/v2"
@@ -59,18 +56,10 @@ func Defs() []di.Def {
 				tokenRepository := ctn.Get(constants.TokenRepositoryName).(*pkgRepositories.BaseRepository[*entities.Token])
 
 				accountService := ctn.Get(constants.AccountServiceName).(*services.AccountService)
-				sessionService := ctn.Get(constants.SessionServiceName).(*services.SessionService)
+				sessionService := ctn.Get(pkgConstants.SessionServiceName).(*auth.SessionService)
 
 				return services.NewAuthService(tokenRepository, accountService, sessionService,
 					authorizer, validatorEngine), nil
-			},
-		},
-		{
-			Name: constants.SessionServiceName,
-			Build: func(ctn di.Container) (interface{}, error) {
-				sessionRepository := ctn.Get(constants.SessionRepositoryName).(repositories.SessionRepository)
-
-				return services.NewSessionService(sessionRepository), nil
 			},
 		},
 		{
@@ -97,14 +86,6 @@ func Defs() []di.Def {
 				conn := ctn.Get(pkgConstants.PgSQLName).(*gorm.DB)
 
 				return pkgRepositories.NewBaseRepository[*entities.Token](conn), nil
-			},
-		},
-		{
-			Name: constants.SessionRepositoryName,
-			Build: func(ctn di.Container) (interface{}, error) {
-				conn := ctn.Get(pkgConstants.RedisName).(*redisConn.Client)
-
-				return redis.NewSessionRepository(conn), nil
 			},
 		},
 		{

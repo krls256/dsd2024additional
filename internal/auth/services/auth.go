@@ -16,7 +16,7 @@ import (
 func NewAuthService(
 	tokenRepository *pkgRepositories.BaseRepository[*entities.Token],
 	accountService *AccountService,
-	sessionService *SessionService,
+	sessionService *auth.SessionService,
 	jwtAuthorizer *auth.JWTAuthorizer,
 	validatorEngine *validator.Validator) *AuthService {
 	return &AuthService{
@@ -32,7 +32,7 @@ func NewAuthService(
 type AuthService struct {
 	tokenRepository *pkgRepositories.BaseRepository[*entities.Token]
 	accountService  *AccountService
-	sessionService  *SessionService
+	sessionService  *auth.SessionService
 
 	jwtAuthorizer   *auth.JWTAuthorizer
 	validatorEngine *validator.Validator
@@ -71,8 +71,9 @@ func (s *AuthService) Login(ctx context.Context, req entities.LoginRequest) (*au
 		return nil, err
 	}
 
-	session := &entities.Session{
+	session := &auth.Session{
 		ID:        jti,
+		UserID:    account.ID,
 		ExpiresAt: t.ExpiresAt,
 	}
 

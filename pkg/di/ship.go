@@ -146,6 +146,14 @@ func PkgDefs(configPath string, migrations []pgsql.SmartEmbed) []di.Def {
 			},
 		},
 		{
+			Name: constants.SessionServiceName,
+			Build: func(ctn di.Container) (interface{}, error) {
+				conn := ctn.Get(constants.RedisName).(*redis.Client)
+
+				return auth.NewSessionService(conn), nil
+			},
+		},
+		{
 			Name: constants.HTTPErrorHandlerName,
 			Build: func(ctn di.Container) (interface{}, error) {
 				return errors.NewErrorHTTPHandler(1), nil
@@ -156,8 +164,9 @@ func PkgDefs(configPath string, migrations []pgsql.SmartEmbed) []di.Def {
 			Build: func(ctn di.Container) (interface{}, error) {
 				authorizer := ctn.Get(constants.JWTAuthorizerName).(*auth.JWTAuthorizer)
 				cfg := ctn.Get(constants.ConfigName).(*config.Config)
+				ss := ctn.Get(constants.SessionServiceName).(*auth.SessionService)
 
-				return auth.NewJWTMiddlewareFactory(authorizer, cfg.JWTConfig), nil
+				return auth.NewJWTMiddlewareFactory(authorizer, cfg.JWTConfig, ss), nil
 			},
 		},
 	}
