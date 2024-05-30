@@ -1,0 +1,45 @@
+http:
+  host: 0.0.0.0
+  port: 6900
+  readTimeout: 30s
+  writeTimeout: 30s
+  silent: false
+  loggerConfig:
+    logErrorsOnly: true
+    logResponse: true
+
+pgsql:
+  host: 0.0.0.0
+  port: 5432
+  name: chat
+  user: postgres
+  pass: "12345"
+  maxIdleTime: 360m
+  maxLifetime: 30m
+  compression: "zlib"
+  maxIdleConnections: 10
+  maxConnections: 20
+  silent: false
+
+mongo:
+  host: 0.0.0.0
+  port: 27017
+  name: chat
+  user: mongo
+  pass: "12345"
+
+redis:
+  #  host: host.docker.internal
+  host: 0.0.0.0
+  port: 6379
+  pass:
+  prefix: "svc"
+
+jwt:
+  headerName: "Bearer"
+  queryName: "token"
+  headerScheme: ""
+  fingerprint: "local"
+  accessTokenLifetime: "1h"
+  refreshTokenLifetime: "720h"
+  issuer: "svc.chat"

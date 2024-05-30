@@ -33,6 +33,10 @@ func (f *JWTMiddlewareFactory) GetToken(ctx *fiber.Ctx) string {
 		token = headers[0]
 	}
 
+	if token == "" {
+		token = ctx.Query(f.cfg.HeaderName)
+	}
+
 	return strings.ReplaceAll(token, f.cfg.HeaderScheme, "")
 }
 

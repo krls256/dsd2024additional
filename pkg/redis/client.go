@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"github.com/samber/lo"
 	"time"
 )
 
@@ -63,4 +64,16 @@ func (c *Client) Del(ctx context.Context, keys ...string) error {
 
 func (c *Client) prepareKey(s string) string {
 	return fmt.Sprintf("%s:%s", c.cfg.Prefix, s)
+}
+
+func (c *Client) Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
+	return c.redis.Subscribe(ctx, lo.Map(channels, func(item string, index int) string {
+		return c.prepareKey(item)
+	})...)
+}
+
+func (c *Client) Publish(ctx context.Context, channel string, message any) error {
+	_, err := c.redis.Publish(ctx, c.prepareKey(channel), message).Result()
+
+	return err
 }

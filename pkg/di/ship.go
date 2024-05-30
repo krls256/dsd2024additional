@@ -12,7 +12,10 @@ import (
 	"github.com/krls256/dsd2024additional/pkg/pgsql"
 	"github.com/krls256/dsd2024additional/pkg/redis"
 	"github.com/krls256/dsd2024additional/pkg/transport/http"
+	"github.com/krls256/dsd2024additional/pkg/transport/http/handlers"
 	"github.com/krls256/dsd2024additional/pkg/transport/http/middlewares"
+	"github.com/krls256/dsd2024additional/pkg/transport/hub"
+	"github.com/krls256/dsd2024additional/pkg/transport/websocket"
 	"github.com/krls256/dsd2024additional/pkg/validator"
 
 	"github.com/gofiber/fiber/v2"
@@ -143,6 +146,38 @@ func PkgDefs(configPath string, migrations []pgsql.SmartEmbed) []di.Def {
 				}
 
 				return http.NewServer(context.Background(), "chat", cfg.HTTPConfig, handlers, mws), nil
+			},
+		},
+		{
+			Name: constants.WSServerName,
+			Build: func(ctn di.Container) (interface{}, error) {
+				h := ctn.Get(constants.HubName).(*hub.Hub)
+				jwtFactory := ctn.Get(constants.JWTMiddlewareFactoryName).(*auth.JWTMiddlewareFactory)
+				handlerNames := filterNamesByTag(ctn.Definitions(), WSHandlerTag)
+
+				handlers := []websocket.Handler{}
+
+				for _, name := range handlerNames {
+					handlers = append(handlers, ctn.Get(name).(websocket.Handler))
+				}
+
+				return websocket.NewServer(h, jwtFactory, handlers...), nil
+			},
+		},
+		{
+			Name: constants.WSHandlerForHTTPName,
+			Tags: []di.Tag{{Name: HTTPHandlerTag}},
+			Build: func(ctn di.Container) (interface{}, error) {
+				wsServer := ctn.Get(constants.WSServerName).(*websocket.Server)
+				jwtFactory := ctn.Get(constants.JWTMiddlewareFactoryName).(*auth.JWTMiddlewareFactory)
+
+				return handlers.NewWSHandler(wsServer, jwtFactory), nil
+			},
+		},
+		{
+			Name: constants.HubName,
+			Build: func(ctn di.Container) (interface{}, error) {
+				return hub.NewHub(), nil
 			},
 		},
 		{

@@ -32,12 +32,19 @@ func NewResponse(status int, meta, nonce, data interface{}) *Response {
 	return response
 }
 
-func NewFormattedError(status int, meta interface{}, nonce interface{}, err []error) *Response {
-	err = lo.Filter(err, func(item error, index int) bool {
+func NewFormattedError(status int, meta interface{}, nonce interface{}, errs []error) *Response {
+	errs = lo.Filter(errs, func(item error, index int) bool {
 		return item != nil
 	})
 
-	return NewResponse(status, meta, nonce, errors.Join(err...).Error())
+	var err error
+	if len(errs) == 0 {
+		err = errors.New("no error")
+	} else {
+		err = errors.Join(errs...)
+	}
+
+	return NewResponse(status, meta, nonce, err.Error())
 }
 
 func StatusTextIfEmpty(data interface{}, status int) interface{} {
