@@ -19,4 +19,7 @@ const (
 	NonZeroCustomRuleName   = "NonZeroCustomRule"
 	BeforeNowCustomRuleName = "BeforeNowCustomRule"
 	AfterNowCustomRuleName  = "AfterNowCustomRule"
+
+	JWTMiddlewareFactoryName = "JWTMiddlewareFactory"
+	HTTPErrorHandlerName     = "ErrorHTTPHandler"
 )

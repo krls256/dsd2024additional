@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
-	authDI "github.com/krls256/dsd2024additional/internal/auth/di"
+	profileDI "github.com/krls256/dsd2024additional/internal/profile/di"
 	"github.com/krls256/dsd2024additional/pkg/constants"
 	pkgDI "github.com/krls256/dsd2024additional/pkg/di"
 	"github.com/krls256/dsd2024additional/pkg/pgsql"
 	"github.com/krls256/dsd2024additional/pkg/transport/http"
 	"github.com/krls256/dsd2024additional/utils"
+
 	"go.uber.org/zap"
 	"time"
 )
@@ -15,9 +16,9 @@ import (
 func main() {
 	now := time.Now()
 
-	defs, pgSQLMigrations := authDI.Defs(), []pgsql.SmartEmbed{authDI.PgSQLMigrations()}
+	defs, pgSQLMigrations := profileDI.Defs(), []pgsql.SmartEmbed{profileDI.PgSQLMigrations()}
 
-	ctn, err := pkgDI.Build("./config.auth.yml", pgSQLMigrations, defs...)
+	ctn, err := pkgDI.Build("./config.profile.yml", pgSQLMigrations, defs...)
 	if err != nil {
 		panic(err)
 	}

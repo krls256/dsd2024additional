@@ -6,6 +6,7 @@ import (
 	"github.com/krls256/dsd2024additional/pkg/auth"
 	"github.com/krls256/dsd2024additional/pkg/config"
 	"github.com/krls256/dsd2024additional/pkg/constants"
+	"github.com/krls256/dsd2024additional/pkg/errors"
 	"github.com/krls256/dsd2024additional/pkg/execctx"
 	pkgMongo "github.com/krls256/dsd2024additional/pkg/mongo"
 	"github.com/krls256/dsd2024additional/pkg/pgsql"
@@ -142,6 +143,21 @@ func PkgDefs(configPath string, migrations []pgsql.SmartEmbed) []di.Def {
 				}
 
 				return http.NewServer(context.Background(), "chat", cfg.HTTPConfig, handlers, mws), nil
+			},
+		},
+		{
+			Name: constants.HTTPErrorHandlerName,
+			Build: func(ctn di.Container) (interface{}, error) {
+				return errors.NewErrorHTTPHandler(1), nil
+			},
+		},
+		{
+			Name: constants.JWTMiddlewareFactoryName,
+			Build: func(ctn di.Container) (interface{}, error) {
+				authorizer := ctn.Get(constants.JWTAuthorizerName).(*auth.JWTAuthorizer)
+				cfg := ctn.Get(constants.ConfigName).(*config.Config)
+
+				return auth.NewJWTMiddlewareFactory(authorizer, cfg.JWTConfig), nil
 			},
 		},
 	}

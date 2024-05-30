@@ -1,6 +1,6 @@
 http:
   host: 0.0.0.0
-  port: 6600
+  port: 6700
   readTimeout: 30s
   writeTimeout: 30s
   silent: false
@@ -11,7 +11,7 @@ http:
 pgsql:
   host: 0.0.0.0
   port: 5432
-  name: auth
+  name: profile
   user: postgres
   pass: "12345"
   maxIdleTime: 360m
@@ -24,7 +24,7 @@ pgsql:
 mongo:
   host: 0.0.0.0
   port: 27017
-  name: auth
+  name: profile
   user: mongo
   pass: "12345"
 
@@ -33,7 +33,7 @@ redis:
   host: 0.0.0.0
   port: 6379
   pass:
-  prefix: "svc.auth"
+  prefix: "svc.profile"
 
 jwt:
   headerName: "Bearer"

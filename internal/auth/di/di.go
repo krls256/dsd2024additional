@@ -11,7 +11,6 @@ import (
 	"github.com/krls256/dsd2024additional/internal/auth/rules"
 	"github.com/krls256/dsd2024additional/internal/auth/services"
 	"github.com/krls256/dsd2024additional/pkg/auth"
-	"github.com/krls256/dsd2024additional/pkg/config"
 	pkgConstants "github.com/krls256/dsd2024additional/pkg/constants"
 	pkgDI "github.com/krls256/dsd2024additional/pkg/di"
 	"github.com/krls256/dsd2024additional/pkg/errors"
@@ -33,8 +32,8 @@ func Defs() []di.Def {
 			Name: constants.AuthHandlerName,
 			Tags: []di.Tag{{Name: pkgDI.HTTPHandlerTag}},
 			Build: func(ctn di.Container) (interface{}, error) {
-				errorHandler := ctn.Get(constants.AuthHTTPErrorHandlerName).(*errors.ErrorHTTPHandler)
-				jwtFactory := ctn.Get(constants.JWTMiddlewareFactoryName).(*auth.JWTMiddlewareFactory)
+				errorHandler := ctn.Get(pkgConstants.HTTPErrorHandlerName).(*errors.ErrorHTTPHandler)
+				jwtFactory := ctn.Get(pkgConstants.JWTMiddlewareFactoryName).(*auth.JWTMiddlewareFactory)
 				authService := ctn.Get(constants.AuthServiceName).(*services.AuthService)
 
 				return http.NewAuthService(authService, errorHandler, jwtFactory), nil
@@ -44,8 +43,8 @@ func Defs() []di.Def {
 			Name: constants.AccountHandlerName,
 			Tags: []di.Tag{{Name: pkgDI.HTTPHandlerTag}},
 			Build: func(ctn di.Container) (interface{}, error) {
-				errorHandler := ctn.Get(constants.AuthHTTPErrorHandlerName).(*errors.ErrorHTTPHandler)
-				jwtFactory := ctn.Get(constants.JWTMiddlewareFactoryName).(*auth.JWTMiddlewareFactory)
+				errorHandler := ctn.Get(pkgConstants.HTTPErrorHandlerName).(*errors.ErrorHTTPHandler)
+				jwtFactory := ctn.Get(pkgConstants.JWTMiddlewareFactoryName).(*auth.JWTMiddlewareFactory)
 				accountService := ctn.Get(constants.AccountServiceName).(*services.AccountService)
 
 				return http.NewAccountHandler(accountService, errorHandler, jwtFactory), nil
@@ -106,21 +105,6 @@ func Defs() []di.Def {
 				conn := ctn.Get(pkgConstants.RedisName).(*redisConn.Client)
 
 				return redis.NewSessionRepository(conn), nil
-			},
-		},
-		{
-			Name: constants.AuthHTTPErrorHandlerName,
-			Build: func(ctn di.Container) (interface{}, error) {
-				return errors.NewErrorHTTPHandler(1), nil
-			},
-		},
-		{
-			Name: constants.JWTMiddlewareFactoryName,
-			Build: func(ctn di.Container) (interface{}, error) {
-				authorizer := ctn.Get(pkgConstants.JWTAuthorizerName).(*auth.JWTAuthorizer)
-				cfg := ctn.Get(pkgConstants.ConfigName).(*config.Config)
-
-				return auth.NewJWTMiddlewareFactory(authorizer, cfg.JWTConfig), nil
 			},
 		},
 		{

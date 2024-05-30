@@ -1,11 +1,11 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/krls256/dsd2024additional/pkg/transport/http"
-	"go.uber.org/zap"
 	"strings"
 )
 
@@ -35,6 +35,14 @@ func (f *JWTMiddlewareFactory) GetToken(ctx *fiber.Ctx) string {
 	return strings.ReplaceAll(token, f.cfg.HeaderScheme, "")
 }
 
+func (f *JWTMiddlewareFactory) WrapCtx(ctx *fiber.Ctx, id uuid.UUID) {
+	ctx.SetUserContext(context.WithValue(ctx.UserContext(), "id", id))
+}
+
+func (f *JWTMiddlewareFactory) UnwrapCtx(ctx *fiber.Ctx) uuid.UUID {
+	return ctx.UserContext().Value("id").(uuid.UUID)
+}
+
 func (f *JWTMiddlewareFactory) Middleware() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		t := f.GetToken(ctx)
@@ -53,7 +61,7 @@ func (f *JWTMiddlewareFactory) Middleware() fiber.Handler {
 			return http.Forbidden(ctx, nil, err)
 		}
 
-		zap.S().Info(jtiUUID)
+		f.WrapCtx(ctx, jtiUUID)
 
 		return ctx.Next()
 	}

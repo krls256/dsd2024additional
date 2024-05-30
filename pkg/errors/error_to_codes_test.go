@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// go test ./pkg/errors -run Test_ErrorToCodes -v
+// go test ./pkg/errs -run Test_ErrorToCodes -v
 func Test_ErrorToCodes(t *testing.T) {
 	err1 := NewErrorWithCode("err1", 1)
 	err2 := NewErrorWithCode("err2", 2)
